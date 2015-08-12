@@ -1,22 +1,21 @@
 package ParkingCode;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 
 import java.util.Map;
-import java.util.Queue;
+
 
 
 public class Parking {
 
-	final int capacityOfParking=20;
+	final int capacityOfParking=1;
 	
 	
-	
+	ParkingLotOwner owner;
 	private Map<CarToken, Car> car= new HashMap<CarToken, Car>();
 	
-	public Parking(){
-		
+	public Parking(ParkingLotOwner owner){
+		this.owner=owner;
 	}
 	
 	
@@ -24,22 +23,31 @@ public class Parking {
 		
 	if(car.size()<capacityOfParking)
 	{
-		
+	
 		return true;
 	
 	}
-		else{
-			
-			return false;
-		}
+	else{
+		
+		return false;
 	}
+	}
+	
+	public void notifyOwner(){
+		if(car.size()==capacityOfParking)
+		owner.parkingIsFull();
+		
+	}
+	
+	
+	
 	
 	public CarToken parked(String carNumber)throws ParkingException{
 		
 		CarToken carToken= new CarToken();
 		if(isParkingAvailable() && !car.containsValue(new  Car(carNumber))){
 			car.put(carToken, new Car(carNumber));
-			
+			notifyOwner();
 			return carToken;
 		}
 		else

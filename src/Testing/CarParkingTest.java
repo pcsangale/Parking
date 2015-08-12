@@ -1,13 +1,22 @@
 package Testing;
 
+import java.security.acl.Owner;
+import java.sql.Time;
+
 import org.junit.Assert;
 import org.junit.Test;
+import static org.mockito.Mockito.*;
+
+import org.mockito.InOrder;
+
 
 import ParkingCode.Car;
 import ParkingCode.CarToken;
 import ParkingCode.Parking;
 import ParkingCode.ParkingException;
-
+import ParkingCode.ParkingLotOwner;
+import ParkingCode.SignBoard;
+import org.mockito.internal.verification.api.*;
 
 public class CarParkingTest {
 
@@ -15,7 +24,8 @@ public class CarParkingTest {
 	
 	@Test
 	public void souldPark(){
-		Parking manager=new Parking();
+		ParkingLotOwner owner= new ParkingLotOwner();
+		Parking manager=new Parking(owner);
 		try{
 		Assert.assertEquals(true, manager.parked("MH-12-1234") instanceof CarToken);
 		}catch (ParkingException e) {
@@ -24,8 +34,19 @@ public class CarParkingTest {
 		}
 	
 	@Test
+	public void isParkingFull() throws Exception{
+		ParkingLotOwner owner= mock(ParkingLotOwner.class);
+		Parking manager=new Parking(owner);
+		
+		manager.parked("12aasf");
+		verify(owner).parkingIsFull();
+		
+	}
+	
+	@Test
 	public void shouldUnpark(){
-		Parking manager=new Parking();
+		ParkingLotOwner owner= new ParkingLotOwner();
+		Parking manager=new Parking(owner);
 		
 		try{
 			CarToken carToken=manager.parked("MH-12-1234");
@@ -38,7 +59,8 @@ public class CarParkingTest {
 	
 	@Test
 	public void souldIsParkingDuplicateCar(){
-		Parking manager=new Parking();
+		ParkingLotOwner owner= new ParkingLotOwner();
+		Parking manager=new Parking(owner);
 		try{
 		manager.parked("MH-12-1234");
 		Assert.assertEquals(false, manager.parked("MH-12-1234") instanceof CarToken);
@@ -49,7 +71,8 @@ public class CarParkingTest {
 		}
 	@Test
 	public void souldParkUnparkedCar(){
-		Parking manager=new Parking();
+		ParkingLotOwner owner= new ParkingLotOwner();
+		Parking manager=new Parking(owner);
 		try{
 		CarToken carToken=manager.parked("MH-12-1234");
 		manager.unparked(carToken);
@@ -59,11 +82,26 @@ public class CarParkingTest {
 			System.out.println(e.getMessage());
 		}
 	}
-	
+	@Test
+	public void shouldNotifyOwner()throws ParkingException{
+		ParkingLotOwner owner= mock(ParkingLotOwner.class);
+		Parking manager=new Parking(owner);
+		
+		manager.parked("12aasf");
+		verify(owner).parkingIsFull();
+	}
+	@Test
+	public void shouldNotNotifyOwner(){
+		ParkingLotOwner owner= mock(ParkingLotOwner.class);
+		Parking manager=new Parking(owner);
+				
+		verify(owner,times(0)).parkingIsFull();
+	}
 	
 	@Test
 	public void shouldNotUnparkUnparkedCar(){
-		Parking manager=new Parking();
+		ParkingLotOwner owner= new ParkingLotOwner();
+		Parking manager=new Parking(owner);
 		try{
 			CarToken carToken = new CarToken();
 			
