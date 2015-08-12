@@ -12,10 +12,13 @@ import org.mockito.InOrder;
 
 import ParkingCode.Car;
 import ParkingCode.CarToken;
+import ParkingCode.FBIAgent;
 import ParkingCode.Parking;
 import ParkingCode.ParkingException;
 import ParkingCode.ParkingLotOwner;
 import ParkingCode.SignBoard;
+import ParkingCode.Subscriber;
+
 import org.mockito.internal.verification.api.*;
 
 public class CarParkingTest {
@@ -39,6 +42,7 @@ public class CarParkingTest {
 		Parking manager=new Parking(owner);
 		
 		manager.parked("12aasf");
+		manager.parked("12a");
 		verify(owner).parkingIsFull();
 		
 	}
@@ -83,12 +87,81 @@ public class CarParkingTest {
 		}
 	}
 	@Test
-	public void shouldNotifyOwner()throws ParkingException{
+	public void shouldNotifyOwner(){
 		ParkingLotOwner owner= mock(ParkingLotOwner.class);
 		Parking manager=new Parking(owner);
-		
+		try{
+			manager.parked("12-PM-2312");
 		manager.parked("12aasf");
+		manager.parked("MH-15-2012");
+		}
+		catch(ParkingException p){
+			System.out.println(p.getMessage());
+		}
+		finally{
 		verify(owner).parkingIsFull();
+		}
+	}
+	@Test
+	public void shouldNotifyFBIAgent() throws ParkingException{
+		ParkingLotOwner owner= mock(ParkingLotOwner.class);
+		
+		Subscriber fbiAgent = mock(FBIAgent.class);
+		
+		Parking manager=new Parking(owner);
+		manager.addParkingSubscriber(fbiAgent);
+		
+			manager.parked("12-PM-2312");
+			manager.parked("MH-15-2012");
+		verify(fbiAgent,times(1)).getParkingFullNotification();
+			
+		
+	}
+	
+	
+	@Test
+	public void shouldNotNotifyFBIAgentParkingIsVacant() throws ParkingException{
+		ParkingLotOwner owner= mock(ParkingLotOwner.class);
+		
+		FBIAgent fbiAgent = mock(FBIAgent.class);
+		
+		Parking manager=new Parking(owner);
+		manager.addParkingSubscriber(fbiAgent);
+		
+			manager.parked("12-PM-2312");
+			CarToken token=manager.parked("MH-14");
+			manager.unparked(token);
+		
+				
+		verify(fbiAgent,times(1)).getParkingEmptyNotification();
+	}
+	
+	@Test
+	public void shouldNotifyEightyPercentFull() throws ParkingException{
+		ParkingLotOwner owner= mock(ParkingLotOwner.class);
+		
+		FBIAgent fbiAgent = mock(FBIAgent.class);
+		
+		Parking manager=new Parking(owner);
+		manager.addParkingSubscriber(fbiAgent);
+		
+			manager.parked("12-PM-2312");
+			manager.parked("MH-14");
+			manager.parked("12-AM-2312");
+			manager.parked("MH-54");
+			
+		
+		verify(fbiAgent,times(1)).getParkingEightyPercentFullNotification();
+	}
+	
+	@Test
+	public void shouldNotifyOwnerOnceSpaceAvailable()throws ParkingException{
+		ParkingLotOwner owner= mock(ParkingLotOwner.class);
+		Parking manager=new Parking(owner);
+		manager.parked("12 MG 1242");
+		CarToken token=manager.parked("12-aasf");
+		manager.unparked(token);
+		verify(owner).parkingIsNotFull();
 	}
 	@Test
 	public void shouldNotNotifyOwner(){
